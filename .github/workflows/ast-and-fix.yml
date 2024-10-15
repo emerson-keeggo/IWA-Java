@@ -64,16 +64,15 @@ jobs:
           scancentral package --output APP.zip
           fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to=${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store=job:jobToken
 
-      # Perform Debricked SCA scan and import results into Fortify
-      - name: SCA Scan (Debricked)
-        run: |
-          debricked scan --access-token=${{ secrets.DEBRICKED_TOKEN }} --repository=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
-          fcli ssc artifact import-debricked --debricked-access-token=${{ secrets.DEBRICKED_TOKEN }} --appversion=${{ env.App-Version  }} --repository=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
+#      # Perform Debricked SCA scan and import results into Fortify
+#      - name: SCA Scan (Debricked)
+#        run: |
+#          debricked scan --access-token=${{ secrets.DEBRICKED_TOKEN }} --repository=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
+#          fcli ssc artifact import-debricked --debricked-access-token=${{ secrets.DEBRICKED_TOKEN }} --appversion=${{ env.App-Version  }} --repository=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
 
       # Wait for Fortify SAST scan to upload results to AI Security Assistant
       - name: Waiting for SAST Results
         run: |
-         fcli sc-sast scan wait-for --any-ssc-state=PROCESS_COMPLETE --timeout=2h ::job::jobToken
          fcli ssc appversion refresh-metrics ${{ env.App-Version  }}
          fcli ssc issue count --appversion=${{ env.App-Version  }} --by="Fortify Priority Order"
          fcli ssc appversion download-state --include-sources --file='results.fpr' ${{ env.App-Version  }}
